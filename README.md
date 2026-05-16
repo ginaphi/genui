@@ -36,7 +36,7 @@ Open the `.openui` file — the preview appears automatically. If not, click the
 
 ## Acknowledgments
 
-[OpenUI Lang](https://github.com/openuidev) — the language, the renderer, the component library. Genui is the IDE integration layer on top.
+[OpenUI Lang](https://github.com/thesysdev/openui) — the language, the renderer, the component library. Genui is the IDE integration layer on top.
 
 ## License
 
