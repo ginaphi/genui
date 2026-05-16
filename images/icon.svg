@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <!-- Dark frame for marketplace contrast. Color matches galleryBanner.color
+       so the icon edges blend cleanly with the listing banner. -->
+  <rect width="256" height="256" fill="#0a0a0a"/>
+
+  <!-- Subtle highlight along the top edge (depth, not decoration) -->
+  <rect width="256" height="56" rx="48" fill="#ffffff" fill-opacity="0.025"/>
+
+  <!-- Back "format slot" card (faintest) — peeks out behind the front card,
+       offset up-and-right. Hints at the multi-format renderer-module
+       architecture (ADR-0001): more formats slot in behind OpenUI Lang. -->
+  <rect x="76" y="48" width="148" height="148" rx="22" fill="#FDFDFD" fill-opacity="0.16"/>
+
+  <!-- Middle "format slot" card (slightly less faint) -->
+  <rect x="62" y="56" width="148" height="148" rx="22" fill="#FDFDFD" fill-opacity="0.32"/>
+
+  <!-- Front card — the format Genui renders today (OpenUI Lang). Solid cream
+       to match OpenUI's component-card chrome. -->
+  <rect x="44" y="64" width="148" height="148" rx="22" fill="#FDFDFD"/>
+  <rect x="44" y="64" width="148" height="148" rx="22" fill="none"
+        stroke="#0a0a0a" stroke-opacity="0.05"/>
+
+  <!-- G letterform — bold sans-serif, OpenUI-typography-adjacent.
+       Sits centered on the front card. -->
+  <text x="118" y="140"
+        text-anchor="middle"
+        dominant-baseline="central"
+        font-family="-apple-system, BlinkMacSystemFont, Inter, Helvetica, Arial, sans-serif"
+        font-weight="800"
+        font-size="118"
+        letter-spacing="-4"
+        fill="#0a0a0a">G</text>
+</svg>

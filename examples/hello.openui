@@ -1,0 +1,4 @@
+root = Stack([title, body, cta])
+title = TextContent("Hello, Genui", "large-heavy")
+body = TextContent("This is a live preview of an .openui file. Edit me and save to re-render.", "default")
+cta = Button("Got it", Action([@ToAssistant("acknowledged")]), "primary")

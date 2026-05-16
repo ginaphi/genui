@@ -1,0 +1,190 @@
+{
+  "name": "generative-ui",
+  "displayName": "Genui — Generative UI Preview",
+  "description": "Live preview for OpenUI Lang (.openui) files. Your AI writes the spec — Genui renders it.",
+  "version": "0.1.2",
+  "publisher": "ginaphi",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.85.0",
+    "node": ">=20"
+  },
+  "icon": "images/icon.png",
+  "galleryBanner": {
+    "color": "#0a0a0a",
+    "theme": "dark"
+  },
+  "categories": [
+    "Visualization"
+  ],
+  "keywords": [
+    "openui",
+    "openui-lang",
+    "generative-ui",
+    "preview",
+    "live preview",
+    "ai",
+    "agent",
+    "claude",
+    "prototype",
+    "ui",
+    "wysiwyg",
+    "react",
+    "markdown-preview",
+    "dsl"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ginaphi/genui.git"
+  },
+  "bugs": {
+    "url": "https://github.com/ginaphi/genui/issues"
+  },
+  "homepage": "https://github.com/ginaphi/genui#readme",
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "genui.openPreview",
+        "title": "Genui: Open Preview",
+        "icon": "$(open-preview)"
+      },
+      {
+        "command": "genui.openPreviewToSide",
+        "title": "Genui: Open Preview to the Side",
+        "icon": "$(open-preview)"
+      }
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "command": "genui.openPreviewToSide",
+          "when": "editorLangId == openui",
+          "group": "navigation"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "genui.openPreview",
+          "when": "resourceLangId == openui",
+          "group": "navigation@99"
+        }
+      ],
+      "editor/context": [
+        {
+          "command": "genui.openPreviewToSide",
+          "when": "editorLangId == openui",
+          "group": "navigation"
+        }
+      ]
+    },
+    "keybindings": [
+      {
+        "command": "genui.openPreviewToSide",
+        "key": "ctrl+k v",
+        "mac": "cmd+k v",
+        "when": "editorLangId == openui"
+      }
+    ],
+    "configuration": {
+      "title": "Genui",
+      "properties": {
+        "genui.autoPreview": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically open a preview tab when a .openui file is opened in the editor. Disable if you prefer to invoke Genui: Open Preview manually."
+        },
+        "genui.renderOn": {
+          "type": "string",
+          "enum": [
+            "save",
+            "type"
+          ],
+          "enumDescriptions": [
+            "Re-render only when the file is saved (Cmd/Ctrl+S). Quieter; uses on-disk content.",
+            "Re-render on every keystroke, debounced 300ms. Reads the editor buffer so unsaved edits show live. External file changes (e.g. from an AI agent writing the file) still re-render in this mode."
+          ],
+          "default": "save",
+          "description": "When to re-render the preview."
+        },
+        "genui.preview.padding": {
+          "type": "number",
+          "default": 24,
+          "minimum": 0,
+          "maximum": 64,
+          "description": "Padding (in pixels) the Genui webview adds around your prototype. Does NOT affect how your .openui files render when embedded in a real app — this is preview chrome only. Set to 0 for true edge-to-edge."
+        },
+        "genui.preview.maxWidth": {
+          "type": "number",
+          "default": 0,
+          "minimum": 0,
+          "maximum": 2400,
+          "description": "Maximum width (in pixels) of the rendered prototype, centered horizontally within the preview pane. Useful on wide monitors where dashboards would otherwise stretch to 1800px+. Set to 0 (default) for unlimited width — the prototype fills the preview pane minus padding. Common values: 960 (article-style), 1200 (app-style), 1440 (dense dashboards)."
+        }
+      }
+    },
+    "languages": [
+      {
+        "id": "openui",
+        "aliases": [
+          "OpenUI Lang",
+          "openui"
+        ],
+        "extensions": [
+          ".openui"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ]
+  },
+  "activationEvents": [],
+  "scripts": {
+    "build:extension": "node build-extension.mjs",
+    "build:webview": "vite build",
+    "build": "pnpm run build:extension && pnpm run build:webview",
+    "watch:extension": "node build-extension.mjs --watch",
+    "watch:webview": "vite build --watch",
+    "dev": "concurrently \"pnpm:watch:*\"",
+    "typecheck": "tsc -p tsconfig.extension.json --noEmit && tsc -p tsconfig.webview.json --noEmit",
+    "lint": "biome check src build-extension.mjs vite.config.ts",
+    "lint:fix": "biome check --write src build-extension.mjs vite.config.ts",
+    "format": "biome format --write src build-extension.mjs vite.config.ts",
+    "check": "pnpm run typecheck && pnpm run lint",
+    "pretest": "pnpm run build && tsc -p tsconfig.test.json",
+    "test": "vscode-test",
+    "vscode:prepublish": "pnpm run build",
+    "package": "vsce package --no-dependencies --out generative-ui-$npm_package_version.vsix",
+    "publish:vscode": "vsce publish --no-dependencies",
+    "publish:openvsx": "ovsx publish --no-dependencies"
+  },
+  "dependencies": {
+    "@openuidev/react-headless": "0.8.1",
+    "@openuidev/react-lang": "0.2.4",
+    "@openuidev/react-ui": "0.11.6",
+    "react": "19.2.6",
+    "react-dom": "19.2.6",
+    "zustand": "^4.5.5"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.4.15",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^20.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@types/vscode": "^1.85.0",
+    "@vitejs/plugin-react": "^4.3.0",
+    "@vscode/test-cli": "^0.0.12",
+    "@vscode/test-electron": "^2.5.2",
+    "@vscode/vsce": "^3.9.1",
+    "concurrently": "^9.0.0",
+    "esbuild": "^0.25.0",
+    "mocha": "^11.7.5",
+    "typescript": "^5.9.0",
+    "vite": "^6.0.0"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
+  }
+}

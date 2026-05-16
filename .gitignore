@@ -1,0 +1,21 @@
+node_modules/
+dist/
+out/
+*.vsix
+.vscode-test/
+.vscode/
+.DS_Store
+
+pnpm-debug.log*
+
+# Personal workspace tooling — local-only, never pushed to GitHub.
+# Each contributor (human or agent) is free to set up their own setup
+# however they like, in any agent of their choice. We do not prescribe.
+.claude/
+.agents/
+skills-lock.json
+CLAUDE.md
+CONTEXT.md
+SETUP.md
+docs/
+resources/

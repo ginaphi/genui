@@ -1,0 +1,71 @@
+$showInvite = false
+$showShortcuts = false
+
+root = Stack([header, tour, ctaRow, inviteModal, shortcutsModal], "column", "l", "stretch", "start")
+
+header = CardHeader("Welcome to Genui", "Three things to know before you start prototyping")
+
+tour = Carousel([slide1, slide2, slide3, slide4])
+
+slide1 = Card([
+  Stack([
+    Tag("STEP 1", null, "sm", "info"),
+    TextContent("Open any .openui file", "large-heavy"),
+    TextContent("Genui activates on the .openui extension. The Open Preview command appears in the Command Palette as soon as you focus a matching editor tab.", "default"),
+  ], "column", "m", "start", "start"),
+])
+
+slide2 = Card([
+  Stack([
+    Tag("STEP 2", null, "sm", "info"),
+    TextContent("Run Genui: Open Preview", "large-heavy"),
+    TextContent("Cmd+Shift+P, then type Genui. Pick Open Preview or Open Preview to the Side. A live preview tab opens beside your source.", "default"),
+  ], "column", "m", "start", "start"),
+])
+
+slide3 = Card([
+  Stack([
+    Tag("STEP 3", null, "sm", "info"),
+    TextContent("Save the file", "large-heavy"),
+    TextContent("Every save (yours OR your AI agent's) triggers a re-render. Parse errors stay scoped to the preview panel — last good content stays visible.", "default"),
+  ], "column", "m", "start", "start"),
+])
+
+slide4 = Card([
+  Stack([
+    Tag("BONUS", null, "sm", "success"),
+    TextContent("Survives Reload Window", "large-heavy"),
+    TextContent("Cmd+R the IDE and your preview tabs come back, freshly rendered from disk. No state lost.", "default"),
+  ], "column", "m", "start", "start"),
+])
+
+ctaRow = Buttons([
+  Button("Invite teammates", Action([@Set($showInvite, true)]), "primary"),
+  Button("Keyboard shortcuts", Action([@Set($showShortcuts, true)]), "secondary"),
+  Button("Skip tour", Action([@ToAssistant("skip")]), "secondary"),
+], "row")
+
+inviteModal = Modal("Invite teammates", $showInvite, [
+  TextContent("Each invitee can preview .openui files in their own editor instance. Pro plan only.", "default"),
+  Form("invite", inviteActions, [emailField, roleField]),
+])
+
+emailField = FormControl("Email address", Input("email", "name@company.com", "email", { required: true, email: true }))
+roleField = FormControl("Role", Select("role", [
+  SelectItem("viewer", "Viewer — read-only preview"),
+  SelectItem("editor", "Editor — can author .openui files"),
+  SelectItem("admin",  "Admin — billing + member management"),
+], null, null, "editor"))
+
+inviteActions = Buttons([
+  Button("Send invite", Action([@ToAssistant("invite"), @Set($showInvite, false)]), "primary"),
+  Button("Cancel", Action([@Set($showInvite, false)]), "secondary"),
+], "row")
+
+shortcutsModal = Modal("Keyboard shortcuts", $showShortcuts, [
+  Table([
+    Col("Action", ["Open Preview", "Open Preview to Side", "Reload Window", "Toggle Webview DevTools", "Close Preview"]),
+    Col("Mac",    ["Cmd+Shift+P → Genui", "Cmd+K V", "Cmd+R", "Cmd+Shift+P → Webview DevTools", "Cmd+W in preview tab"]),
+    Col("Linux/Win", ["Ctrl+Shift+P → Genui", "Ctrl+K V", "Ctrl+R", "Ctrl+Shift+P → Webview DevTools", "Ctrl+W in preview tab"]),
+  ]),
+])

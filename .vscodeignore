@@ -1,0 +1,55 @@
+# Everything outside dist/ + manifest stays out of the VSIX.
+# Source, tests, configs, docs — keep them in the repo, not the artifact.
+
+src/**
+out/**
+node_modules/**
+.vscode/**
+.vscode-test/**
+
+# Build inputs (we ship the built outputs in dist/)
+build-extension.mjs
+vite.config.ts
+tsconfig*.json
+biome.json
+.npmrc
+.nvmrc
+.gitignore
+pnpm-workspace.yaml
+pnpm-lock.yaml
+.vscode-test.mjs
+
+# Vite emits its HTML entry inside dist/webview/src — strip it (the extension
+# host generates its own HTML at runtime per ADR-0006).
+dist/webview/src/**
+
+# Test artifacts
+**/*.test.ts
+**/*.test.js
+**/*.test.js.map
+**/*.map
+
+# Docs / repo metadata (the Marketplace listing has its own README)
+docs/**
+resources/**
+.claude/**
+.agents/**
+skills-lock.json
+CLAUDE.md
+CONTEXT.md
+CONTRIBUTING.md
+SETUP.md
+PRD-*.md
+examples/**
+.github/**
+
+# Images: keep only what the marketplace README references (hero.png) +
+# the extension icon. Drop unused screenshots.
+images/error-overlay.png
+images/conditional.png
+images/settings.png
+images/icon.svg
+
+# Misc
+*.vsix
+.DS_Store

@@ -1,0 +1,45 @@
+# Accordion FAQ — collapsible question/answer sections.
+# AccordionItem(value, trigger, content): value is the unique id, trigger is
+# the always-visible label, content is the body shown when expanded.
+
+root = Stack([header, faq, contactCta], "column", "l", "stretch", "start")
+
+header = CardHeader("Frequently asked questions", "Everything teams ask before adopting Genui")
+
+faq = Accordion([q1, q2, q3, q4, q5, q6])
+
+q1 = AccordionItem("renderon", "What does Genui re-render on?", [
+  TextContent("By default, Genui re-renders on file save — both your saves and saves your AI agent makes. You can switch to keystroke-debounced rendering via the genui.renderOn setting if you prefer Markdown-preview-style live editing.", "default"),
+])
+
+q2 = AccordionItem("formats", "Which file formats does Genui render?", [
+  TextContent("v1 supports OpenUI Lang (.openui). The architecture is multi-format from day one — Vercel json-render, Google A2UI, and Open-JSON-UI are planned for v0.2 and ship as drop-in renderer modules.", "default"),
+])
+
+q3 = AccordionItem("forks", "Does it work in Cursor, Windsurf, and VSCodium?", [
+  TextContent("Yes. One .vsix runs in VS Code stable plus all three forks. We only use the stable VS Code Extension API — no proprietary surfaces. If a fork breaks, file an issue with the fork name and version.", "default"),
+])
+
+q4 = AccordionItem("ai", "Does Genui include an AI agent?", [
+  TextContent("No. Genui renders files. Your AI agent — Claude, Cursor's agent, whatever — writes the file, Genui shows it live. The two concerns stay separate so you can swap either side independently.", "default"),
+])
+
+q5 = AccordionItem("privacy", "What data does Genui send anywhere?", [
+  TextContent("Nothing. Genui is fully local. No telemetry, no analytics, no phone-home. The webview renders your file content with zero network access (CSP enforces it).", "default"),
+])
+
+q6 = AccordionItem("oss", "Is Genui open source?", [
+  Stack([
+    TextContent("Yes — MIT licensed, source on GitHub. Issues and PRs welcome. Renderer modules are pluggable, so adding a new format is one TSX file plus a registry entry.", "default"),
+    Tag("MIT", null, "sm", "neutral"),
+  ], "column", "s", "start", "start"),
+])
+
+contactCta = Card([
+  TextContent("Still have questions?", "large-heavy"),
+  TextContent("Open an issue on GitHub or reach the maintainer directly.", "small"),
+  Buttons([
+    Button("Open an issue", Action([@ToAssistant("github_issue")]), "primary"),
+    Button("Email maintainer", Action([@ToAssistant("contact")]), "secondary"),
+  ], "row"),
+])
