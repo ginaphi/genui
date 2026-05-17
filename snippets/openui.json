@@ -1,0 +1,125 @@
+{
+  "Root scaffold": {
+    "prefix": "root",
+    "body": [
+      "root = Stack([${1:header}])",
+      "${1:header} = TextContent(\"${2:Hello, world}\", \"large-heavy\")",
+      "$0"
+    ],
+    "description": "Entry point — every .openui program starts here. root is always the first line for optimal streaming."
+  },
+  "Stack (vertical)": {
+    "prefix": "stack",
+    "body": [
+      "${1:name} = Stack([${2:children}])"
+    ],
+    "description": "Vertical Stack container (default direction)."
+  },
+  "Stack (horizontal row)": {
+    "prefix": "stackrow",
+    "body": [
+      "${1:name} = Stack([${2:children}], \"row\", \"${3|m,s,l,xl,none,xs,2xl|}\")"
+    ],
+    "description": "Horizontal Stack with explicit gap. Use direction \"row\" for side-by-side layouts."
+  },
+  "Card with header": {
+    "prefix": "card",
+    "body": [
+      "${1:name}Header = CardHeader(\"${2:Title}\", \"${3:Optional subtitle}\")",
+      "${1:name} = Card([${1:name}Header, ${4:body}])"
+    ],
+    "description": "Card with CardHeader. Card is always full width and flexes in row/wrap layouts."
+  },
+  "Form with rules": {
+    "prefix": "form",
+    "body": [
+      "${1:formName}Submit = Button(\"${2:Submit}\", Action([${3:@Set(\\$saved, true)}]))",
+      "${1:formName}Cancel = Button(\"Cancel\")",
+      "${1:formName}Buttons = Buttons([${1:formName}Submit, ${1:formName}Cancel])",
+      "${1:formName} = Form(\"${1:formName}\", ${1:formName}Buttons, [${4:fields}])"
+    ],
+    "description": "Form container with explicit Buttons reference. Always pass Buttons as the third Form arg."
+  },
+  "FormControl with input": {
+    "prefix": "formcontrol",
+    "body": [
+      "${1:fieldName} = FormControl(\"${2:Label}\", Input(\"$${1:fieldName}\"), {required: true}, \"${3:hint text}\")"
+    ],
+    "description": "Form field bound to $fieldName state. Available rules: required, email, min, max, minLength, maxLength, pattern, url, numeric."
+  },
+  "Table (column-oriented)": {
+    "prefix": "table",
+    "body": [
+      "${1:tableName} = Table([",
+      "  Col(\"${2:Name}\", data.rows.${3:name}),",
+      "  Col(\"${4:Count}\", data.rows.${5:count}, \"number\")",
+      "])"
+    ],
+    "description": "Data table — column-oriented. Each Col holds its own data array. Use array pluck: data.rows.fieldName."
+  },
+  "Tabs": {
+    "prefix": "tabs",
+    "body": [
+      "${1:tabsName} = Tabs([",
+      "  TabItem(\"${2:overview}\", \"${3:Overview}\", [${4:content1}]),",
+      "  TabItem(\"${5:details}\", \"${6:Details}\", [${7:content2}])",
+      "])"
+    ],
+    "description": "Tabbed container. value is the unique id, trigger is the tab label."
+  },
+  "Accordion": {
+    "prefix": "accordion",
+    "body": [
+      "${1:accName} = Accordion([",
+      "  AccordionItem(\"${2:item1}\", \"${3:Section 1}\", [${4:content1}]),",
+      "  AccordionItem(\"${5:item2}\", \"${6:Section 2}\", [${7:content2}])",
+      "])"
+    ],
+    "description": "Collapsible sections."
+  },
+  "Modal (with $show)": {
+    "prefix": "modal",
+    "body": [
+      "${1:modalName} = Modal(\"${2:Title}\", $${3:show}, [${4:content}])"
+    ],
+    "description": "Modal dialog. $show is a reactive boolean — set to true to open. X/Escape/backdrop auto-close. Put Form with buttons inside children."
+  },
+  "Callout (success toast)": {
+    "prefix": "callout-success",
+    "body": [
+      "${1:toastName} = Callout(\"success\", \"${2:Saved}\", \"${3:Done.}\", $${4:show})"
+    ],
+    "description": "Success toast — auto-dismisses after 3s when $show is set true. Use @Set($show, true) in save action."
+  },
+  "Callout (error)": {
+    "prefix": "callout-error",
+    "body": [
+      "${1:errName} = Callout(\"error\", \"${2:Failed}\", \"${3:Please try again.}\")"
+    ],
+    "description": "Error callout. No $visible binding — pair with conditional render: result.status == \"error\" ? errName : null"
+  },
+  "Button with Action": {
+    "prefix": "button",
+    "body": [
+      "${1:btnName} = Button(\"${2:Click me}\", Action([@${3|Set,Mutation|}(${4:args})]))"
+    ],
+    "description": "Button that fires an Action. Common: @Set($var, value), @Mutation(\"name\", {args})."
+  },
+  "Select bound to $var": {
+    "prefix": "select",
+    "body": [
+      "${1:selectName} = Select($${2:value}, [",
+      "  Option(\"${3:value1}\", \"${4:Label 1}\"),",
+      "  Option(\"${5:value2}\", \"${6:Label 2}\")",
+      "])"
+    ],
+    "description": "Select dropdown bound to a $variable. First arg is the binding."
+  },
+  "Conditional render": {
+    "prefix": "cond",
+    "body": [
+      "${1:condition} ? ${2:Card([])} : null"
+    ],
+    "description": "Conditional rendering — renders second when condition is truthy, null otherwise. Common: $editId != \"\" ? editForm : null."
+  }
+}

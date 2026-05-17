@@ -7,8 +7,8 @@ import * as vscode from 'vscode'
 
 suite('Genui extension', () => {
   test('extension is registered and activates', async () => {
-    const ext = vscode.extensions.getExtension('ginaphi.genui')
-    assert.ok(ext, 'Extension ginaphi.genui should be registered')
+    const ext = vscode.extensions.getExtension('ginaphi.generative-ui')
+    assert.ok(ext, 'Extension ginaphi.generative-ui should be registered')
     await ext.activate()
     assert.strictEqual(ext.isActive, true)
   })
@@ -31,7 +31,7 @@ suite('Genui extension', () => {
   })
 
   test('openPreview opens a panel when .openui file is active', async () => {
-    const ext = vscode.extensions.getExtension('ginaphi.genui')!
+    const ext = vscode.extensions.getExtension('ginaphi.generative-ui')!
     await ext.activate()
 
     const uri = vscode.Uri.file(path.join(ext.extensionPath, 'examples', 'hello.openui'))
@@ -45,7 +45,7 @@ suite('Genui extension', () => {
   })
 
   test('openPreview is idempotent — re-opening focuses existing panel (ADR-0010)', async () => {
-    const ext = vscode.extensions.getExtension('ginaphi.genui')!
+    const ext = vscode.extensions.getExtension('ginaphi.generative-ui')!
     await ext.activate()
 
     const uri = vscode.Uri.file(path.join(ext.extensionPath, 'examples', 'hello.openui'))
@@ -61,11 +61,11 @@ suite('Genui extension', () => {
   })
 
   test('opening multiple .openui files creates independent panels', async () => {
-    const ext = vscode.extensions.getExtension('ginaphi.genui')!
+    const ext = vscode.extensions.getExtension('ginaphi.generative-ui')!
     await ext.activate()
 
     const examplesDir = path.join(ext.extensionPath, 'examples')
-    const files = ['hello.openui', 'changelog-callouts.openui']
+    const files = ['hello.openui', 'admin-users.openui']
 
     for (const filename of files) {
       const uri = vscode.Uri.file(path.join(examplesDir, filename))
@@ -79,7 +79,7 @@ suite('Genui extension', () => {
   })
 
   test('openPreviewToSide command works on same file', async () => {
-    const ext = vscode.extensions.getExtension('ginaphi.genui')!
+    const ext = vscode.extensions.getExtension('ginaphi.generative-ui')!
     await ext.activate()
 
     const uri = vscode.Uri.file(path.join(ext.extensionPath, 'examples', 'hello.openui'))
@@ -100,7 +100,7 @@ suite('Genui — floating preview lifecycle (ADR-0013)', () => {
 
   suiteSetup(async function () {
     this.timeout(5000)
-    const ext = vscode.extensions.getExtension('ginaphi.genui')!
+    const ext = vscode.extensions.getExtension('ginaphi.generative-ui')!
     await ext.activate()
     await wait(STARTUP_GRACE_MS)
   })
@@ -112,14 +112,10 @@ suite('Genui — floating preview lifecycle (ADR-0013)', () => {
 
   test('opening multiple .openui files via editor switches retargets a single floating preview', async function () {
     this.timeout(10000)
-    const ext = vscode.extensions.getExtension('ginaphi.genui')!
+    const ext = vscode.extensions.getExtension('ginaphi.generative-ui')!
     const examplesDir = path.join(ext.extensionPath, 'examples')
 
-    for (const filename of [
-      'hello.openui',
-      'changelog-callouts.openui',
-      'dashboard-analytics.openui',
-    ]) {
+    for (const filename of ['hello.openui', 'admin-users.openui', 'admin-overview.openui']) {
       const uri = vscode.Uri.file(path.join(examplesDir, filename))
       const doc = await vscode.workspace.openTextDocument(uri)
       await vscode.window.showTextDocument(doc)
@@ -136,7 +132,7 @@ suite('Genui — floating preview lifecycle (ADR-0013)', () => {
 
   test('explicit Open Preview on the file the floating is showing does NOT duplicate the panel', async function () {
     this.timeout(10000)
-    const ext = vscode.extensions.getExtension('ginaphi.genui')!
+    const ext = vscode.extensions.getExtension('ginaphi.generative-ui')!
     const uri = vscode.Uri.file(path.join(ext.extensionPath, 'examples', 'hello.openui'))
     const doc = await vscode.workspace.openTextDocument(uri)
     await vscode.window.showTextDocument(doc)
@@ -156,7 +152,7 @@ suite('Genui — floating preview lifecycle (ADR-0013)', () => {
 
   test('explicit Open Preview on DIFFERENT URIs creates one pinned panel per URI (ADR-0010)', async function () {
     this.timeout(10000)
-    const ext = vscode.extensions.getExtension('ginaphi.genui')!
+    const ext = vscode.extensions.getExtension('ginaphi.generative-ui')!
     const examplesDir = path.join(ext.extensionPath, 'examples')
 
     // Isolate the pinned-only path — disable autoPreview so the floating
@@ -164,7 +160,7 @@ suite('Genui — floating preview lifecycle (ADR-0013)', () => {
     const cfg = vscode.workspace.getConfiguration('genui')
     await cfg.update('autoPreview', false, vscode.ConfigurationTarget.Global)
     try {
-      for (const filename of ['hello.openui', 'changelog-callouts.openui']) {
+      for (const filename of ['hello.openui', 'admin-users.openui']) {
         const uri = vscode.Uri.file(path.join(examplesDir, filename))
         const doc = await vscode.workspace.openTextDocument(uri)
         await vscode.window.showTextDocument(doc)
@@ -182,7 +178,7 @@ suite('Genui — floating preview lifecycle (ADR-0013)', () => {
 // ADR-0014 — preview chrome settings (padding, maxWidth).
 suite('Genui — preview chrome settings (ADR-0014)', () => {
   suiteSetup(async () => {
-    const ext = vscode.extensions.getExtension('ginaphi.genui')!
+    const ext = vscode.extensions.getExtension('ginaphi.generative-ui')!
     await ext.activate()
   })
 
@@ -198,7 +194,7 @@ suite('Genui — preview chrome settings (ADR-0014)', () => {
 
   test('switching genui.renderOn to "type" and editing a document does not throw', async function () {
     this.timeout(10000)
-    const ext = vscode.extensions.getExtension('ginaphi.genui')!
+    const ext = vscode.extensions.getExtension('ginaphi.generative-ui')!
     const uri = vscode.Uri.file(path.join(ext.extensionPath, 'examples', 'hello.openui'))
     const doc = await vscode.workspace.openTextDocument(uri)
     await vscode.window.showTextDocument(doc)
@@ -233,7 +229,7 @@ suite('Genui — preview chrome settings (ADR-0014)', () => {
 
   test('changing preview chrome settings on a live panel does not throw', async function () {
     this.timeout(10000)
-    const ext = vscode.extensions.getExtension('ginaphi.genui')!
+    const ext = vscode.extensions.getExtension('ginaphi.generative-ui')!
     const uri = vscode.Uri.file(path.join(ext.extensionPath, 'examples', 'hello.openui'))
     const doc = await vscode.workspace.openTextDocument(uri)
     await vscode.window.showTextDocument(doc)

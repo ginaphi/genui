@@ -1,12 +1,19 @@
 # Genui — Generative UI Preview
 
-![Hero: source code on the left, live rendered preview on the right](images/hero.png)
+Your AI writes a UI spec in plain text. This extension renders it live in VS Code. Together they turn any agent — Claude Code, Codex, Cursor, Copilot — into a live UI prototyping tool.
 
-Your AI writes a UI spec in plain text. This extension renders it live in VS Code. The skill teaches your AI the right syntax.
+## Two pieces
+
+Genui is a two-piece product. Both must be installed:
+
+- **The extension** (this repo) renders `.openui` files in a VS Code preview pane that updates on every save.
+- **The skill** ([`ginaphi/skills`](https://github.com/ginaphi/skills)) teaches your AI how to write OpenUI Lang — the strict, declarative syntax the renderer expects.
+
+The extension without the skill is a renderer with nothing to render. The skill without the extension is correct text that nobody sees. Together: your AI authors prototypes you can review live in the editor.
+
+![Operations overview rendered live in the Genui preview pane — KPI cards, line + donut charts, ranked routes, and a recent-events table](images/banner.png)
 
 ## Get started
-
-Both pieces are needed — the extension renders, the skill writes.
 
 **1. Install the extension**
 
@@ -26,7 +33,7 @@ Pick `genui` when prompted. Works with Claude Code, Cursor, Copilot, and most ot
 
 **3. Ask your AI**
 
-> "sketch a settings page" · "mock up a dashboard" · "genui this"
+> `/genui a settings page` — or just "genui this"
 
 The agent writes a `.openui` file in `docs/prototype/`.
 

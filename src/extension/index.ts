@@ -1,5 +1,6 @@
 import * as vscode from 'vscode'
 import { promoteFloatingIfMatches, refreshAutoPreviewHtml, setupAutoPreview } from './auto-preview'
+import { setupDiagnostics } from './diagnostics'
 import { openOrFocus, refreshAllPinnedHtml } from './panel-registry'
 import { registerSerializer } from './serializer'
 import { setupWatcher } from './watcher'
@@ -28,6 +29,7 @@ export function activate(context: vscode.ExtensionContext): void {
 
   setupAutoPreview(context)
   setupWatcher(context)
+  setupDiagnostics(context)
   registerSerializer(context)
 }
 
