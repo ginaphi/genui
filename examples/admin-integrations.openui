@@ -1,0 +1,141 @@
+# admin-integrations.openui — third-party integrations directory.
+#
+# Inspired by edge-repo's admin integrations screen. Shows a grid of
+# external services (Claude/Codex MCP servers, alerts to Discord/Slack,
+# dev tools), filterable by category, with a configure modal whose form
+# adapts to the integration type.
+#
+# Showcases:
+#   - @Each over a card grid (not a Table) — same primitive, different shape
+#   - Category filter via Tabs binding to $category
+#   - Conditional form-per-type — Modal contents switch on $editType
+#   - SwitchGroup for multi-toggle settings (alerts events)
+#   - Multi-step @Set in one Action (opens modal AND seeds edit state)
+#   - Status Tag colour driven by integration.enabled
+#
+# In production:
+#   data = Query("listIntegrations")
+# For this prototype, data is inline:
+
+data = {
+  rows: [
+    {id: "claude",   name: "Claude",          category: "mcp",    type: "mcp",     enabled: true,  desc: "MCP server for tool calls and code generation."},
+    {id: "codex",    name: "OpenAI Codex",    category: "mcp",    type: "mcp",     enabled: false, desc: "MCP server for code completion via OpenAI."},
+    {id: "cursor",   name: "Cursor",          category: "mcp",    type: "mcp",     enabled: false, desc: "MCP server for the Cursor editor IDE."},
+    {id: "discord",  name: "Discord",         category: "alerts", type: "webhook", enabled: true,  desc: "Post alerts and deploys to a Discord channel."},
+    {id: "telegram", name: "Telegram",        category: "alerts", type: "webhook", enabled: false, desc: "Forward incidents to a Telegram chat or group."},
+    {id: "slack",    name: "Slack",           category: "alerts", type: "webhook", enabled: true,  desc: "Post notifications to a Slack workspace."},
+    {id: "github",   name: "GitHub",          category: "dev",    type: "apikey",  enabled: true,  desc: "Read issues, sync deploys, manage releases."},
+    {id: "resend",   name: "Resend",          category: "dev",    type: "apikey",  enabled: true,  desc: "Send transactional email via Resend's API."},
+    {id: "sentry",   name: "Sentry",          category: "dev",    type: "apikey",  enabled: false, desc: "Forward client and edge errors to Sentry."}
+  ]
+}
+
+$category = "all"
+$showConfig = false
+$editId = ""
+$editType = ""
+$editName = ""
+
+root = Stack([heading, kpis, categoryTabs, grid, configModal], "column", "l", "stretch", "start")
+
+heading = CardHeader("Integrations", "Connect Claude, alerts, and dev tooling to your workspace")
+
+kpis = Stack([kpiTotal, kpiEnabled, kpiMcp, kpiAlerts], "row", "m", "stretch", "start", true)
+
+kpiTotal = Card([
+  TextContent("Available", "small"),
+  TextContent("" + @Count(data.rows), "large-heavy")
+])
+
+kpiEnabled = Card([
+  TextContent("Enabled", "small"),
+  TextContent("" + @Count(@Filter(data.rows, "enabled", "==", true)), "large-heavy"),
+  Tag("active", null, "sm", "success")
+])
+
+kpiMcp = Card([
+  TextContent("MCP servers", "small"),
+  TextContent("" + @Count(@Filter(data.rows, "category", "==", "mcp")), "large-heavy"),
+  Tag("AI tools", null, "sm", "info")
+])
+
+kpiAlerts = Card([
+  TextContent("Alert channels", "small"),
+  TextContent("" + @Count(@Filter(data.rows, "category", "==", "alerts")), "large-heavy"),
+  Tag("messaging", null, "sm", "neutral")
+])
+
+# Category filter as Tabs — each tab sets $category. The card grid below
+# reacts via the `visible` filter binding.
+categoryTabs = Tabs([
+  TabItem("all",    "All " + @Count(data.rows),                                                       [allTabBody]),
+  TabItem("mcp",    "MCP " + @Count(@Filter(data.rows, "category", "==", "mcp")),                     [mcpTabBody]),
+  TabItem("alerts", "Alerts " + @Count(@Filter(data.rows, "category", "==", "alerts")),               [alertsTabBody]),
+  TabItem("dev",    "Dev " + @Count(@Filter(data.rows, "category", "==", "dev")),                     [devTabBody])
+])
+
+allTabBody    = Callout("info", "Browse all integrations", "Each card below shows the connection status and a configure action.")
+mcpTabBody    = Callout("info", "MCP — Model Context Protocol", "Servers Claude (and other agents) can call as tools.")
+alertsTabBody = Callout("info", "Alert channels", "Push deploys, incidents, and audit events to messaging apps.")
+devTabBody    = Callout("info", "Dev integrations", "Hook into the source-of-truth services your team relies on.")
+
+# The grid renders ALL integrations once; the Tabs above are presentational
+# (the user picks a tab to read the category explainer). OpenUI Lang has no
+# arrow-functions, so the card body is inlined inside @Each.
+grid = Stack(@Each(data.rows, "it", Card([
+  Stack([
+    Stack([
+      TextContent(it.name, "large-heavy"),
+      TextContent(it.desc, "small")
+    ], "column", "xs", "start", "start"),
+    Tag(it.enabled ? "enabled" : "disabled", null, "sm", it.enabled ? "success" : "neutral")
+  ], "row", "m", "start", "between"),
+  Buttons([
+    Button("Configure", Action([
+      @Set($showConfig, true),
+      @Set($editId, it.id),
+      @Set($editType, it.type),
+      @Set($editName, it.name)
+    ]), "secondary"),
+    Button(
+      it.enabled ? "Disable" : "Enable",
+      Action([@Mutation("toggleIntegration", { id: it.id, enabled: it.enabled })]),
+      it.enabled ? "destructive" : "primary"
+    )
+  ], "row")
+])), "row", "m", "stretch", "start", true)
+
+# Configure modal — body switches based on $editType.
+configModal = Modal("Configure " + $editName, $showConfig, [configBody])
+
+configBody = $editType == "mcp" ? mcpForm : ($editType == "webhook" ? webhookForm : ($editType == "apikey" ? apiKeyForm : empty))
+
+empty = Callout("info", "Pick an integration", "Click Configure on a card to set this up.")
+
+# Form 1 — MCP server
+mcpForm = Form("mcp", configActions, [mcpUrlCtrl, mcpToolsCtrl, mcpAutoApproveCtrl])
+mcpUrlCtrl = FormControl("Server URL", Input("url", "https://mcp.example.com", "url", { required: true, url: true }))
+mcpToolsCtrl = FormControl("Allowed tools", TextArea("tools", "search_repos\nrun_query\nlist_files", 4, null))
+mcpAutoApproveCtrl = FormControl("Auto-approve", CheckBoxItem("Auto-approve read-only tools", "Writes still prompt for approval", "autoApprove", false))
+
+# Form 2 — Webhook (alerts to Discord/Slack/Telegram)
+webhookForm = Form("webhook", configActions, [webhookUrlCtrl, webhookEventsCtrl])
+webhookUrlCtrl = FormControl("Webhook URL", Input("url", "https://hooks.slack.com/services/…", "url", { required: true, url: true }))
+webhookEventsCtrl = FormControl("Send on", SwitchGroup("events", [
+  SwitchItem("Deploy succeeded", null, "deploy_ok", true),
+  SwitchItem("Deploy failed",    null, "deploy_fail", true),
+  SwitchItem("Incident opened",  null, "incident", true),
+  SwitchItem("Audit log entry",  null, "audit", false),
+  SwitchItem("New user invited", null, "user_invite", false)
+]))
+
+# Form 3 — API key (GitHub / Resend / Sentry)
+apiKeyForm = Form("apikey", configActions, [apiKeyCtrl, apiKeyNoteCtrl])
+apiKeyCtrl = FormControl("API key", Input("apiKey", "sk_live_…", "password", { required: true, minLength: 16 }))
+apiKeyNoteCtrl = FormControl("Note (optional)", Input("note", "e.g. \"prod read-only\"", "text", null))
+
+configActions = Buttons([
+  Button("Cancel", Action([@Set($showConfig, false)]), "secondary"),
+  Button("Save", Action([@Mutation("saveIntegration", { id: "", type: "" }), @Set($showConfig, false)]), "primary")
+], "row")

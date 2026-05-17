@@ -65,7 +65,7 @@ suite('Genui extension', () => {
     await ext.activate()
 
     const examplesDir = path.join(ext.extensionPath, 'examples')
-    const files = ['hello.openui', 'changelog-callouts.openui']
+    const files = ['hello.openui', 'admin-users.openui']
 
     for (const filename of files) {
       const uri = vscode.Uri.file(path.join(examplesDir, filename))
@@ -115,11 +115,7 @@ suite('Genui — floating preview lifecycle (ADR-0013)', () => {
     const ext = vscode.extensions.getExtension('ginaphi.generative-ui')!
     const examplesDir = path.join(ext.extensionPath, 'examples')
 
-    for (const filename of [
-      'hello.openui',
-      'changelog-callouts.openui',
-      'dashboard-analytics.openui',
-    ]) {
+    for (const filename of ['hello.openui', 'admin-users.openui', 'admin-overview.openui']) {
       const uri = vscode.Uri.file(path.join(examplesDir, filename))
       const doc = await vscode.workspace.openTextDocument(uri)
       await vscode.window.showTextDocument(doc)
@@ -164,7 +160,7 @@ suite('Genui — floating preview lifecycle (ADR-0013)', () => {
     const cfg = vscode.workspace.getConfiguration('genui')
     await cfg.update('autoPreview', false, vscode.ConfigurationTarget.Global)
     try {
-      for (const filename of ['hello.openui', 'changelog-callouts.openui']) {
+      for (const filename of ['hello.openui', 'admin-users.openui']) {
         const uri = vscode.Uri.file(path.join(examplesDir, filename))
         const doc = await vscode.workspace.openTextDocument(uri)
         await vscode.window.showTextDocument(doc)

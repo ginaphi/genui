@@ -1,0 +1,125 @@
+# admin-overview.openui — Cloudflare-style operations dashboard.
+#
+# Inspired by edge-repo's admin overview screen. One Query() would supply
+# everything here; inlined for the prototype.
+#
+# Showcases:
+#   - One data source feeding multiple visualisations (charts + table)
+#   - All three core chart types: LineChart (2D series), HorizontalBarChart
+#     (ranked categories), PieChart (1D values)
+#   - KPI pattern from data: TextContent("" + @Count(@Filter(...)), "large-heavy")
+#   - Time-range Select binding driving the visible window
+#   - data.rows pluck syntax fed straight into Col data arrays
+#   - Conditional Tag colour from row value
+#
+# In production:
+#   data = Query("getOpsMetrics", { days: $days })
+# For this prototype, data is inline:
+
+data = {
+  trafficDays: ["May 8", "May 9", "May 10", "May 11", "May 12", "May 13", "May 14"],
+  trafficRequests: [124000, 138000, 142000, 156000, 168000, 121000, 148000],
+  trafficErrors: [180, 220, 145, 180, 240, 90, 110],
+
+  topRoutes: ["/api/users", "/api/posts", "/api/auth", "/api/billing", "/api/uploads", "/api/search", "/api/webhooks"],
+  topCounts: [42100, 31800, 28200, 14700, 9800, 7100, 3400],
+
+  statusCodes: ["2xx success", "3xx redirect", "4xx client", "5xx server"],
+  statusCounts: [136200, 5400, 4100, 480],
+
+  events: [
+    {time: "14:32:08", path: "/api/users",    method: "POST", code: 201, region: "iad", ms: 23,  user: "u_07"},
+    {time: "14:31:55", path: "/api/auth",     method: "POST", code: 200, region: "lhr", ms: 18,  user: "u_03"},
+    {time: "14:31:41", path: "/api/billing",  method: "GET",  code: 500, region: "iad", ms: 412, user: "u_11"},
+    {time: "14:30:22", path: "/api/posts",    method: "PATCH",code: 200, region: "nrt", ms: 31,  user: "u_02"},
+    {time: "14:29:11", path: "/api/uploads",  method: "POST", code: 413, region: "iad", ms: 8,   user: "u_05"},
+    {time: "14:28:50", path: "/api/users",    method: "GET",  code: 200, region: "syd", ms: 14,  user: "u_09"},
+    {time: "14:28:18", path: "/api/webhooks", method: "POST", code: 202, region: "iad", ms: 21,  user: "—"},
+    {time: "14:27:44", path: "/api/auth",     method: "POST", code: 401, region: "fra", ms: 12,  user: "—"},
+    {time: "14:27:02", path: "/api/search",   method: "GET",  code: 200, region: "lhr", ms: 47,  user: "u_07"},
+    {time: "14:26:31", path: "/api/posts",    method: "GET",  code: 304, region: "iad", ms: 6,   user: "u_03"}
+  ]
+}
+
+$days = "7"
+
+root = Stack([heading, kpis, chartsRow, eventsSection], "column", "l", "stretch", "start")
+
+heading = Stack([title, rangeCtrl], "row", "m", "center", "between")
+
+title = CardHeader("Operations overview", "Edge requests, errors, and recent activity across all regions")
+
+rangeCtrl = FormControl("Time range", Select("days", [
+  SelectItem("1", "Last 24 hours"),
+  SelectItem("7", "Last 7 days"),
+  SelectItem("30", "Last 30 days"),
+  SelectItem("90", "Last 90 days")
+], null, null, $days))
+
+# KPIs. Notice the @Count(@Filter(...)) pattern for derived counts —
+# this works identically when data comes from Query().
+kpis = Stack([kpiReq, kpiErr, kpiSuccess, kpiAvg], "row", "m", "stretch", "start", true)
+
+kpiReq = Card([
+  TextContent("Total requests", "small"),
+  TextContent("147,180", "large-heavy"),
+  Tag("+12% vs prev", null, "sm", "success")
+])
+
+kpiErr = Card([
+  TextContent("5xx errors", "small"),
+  TextContent("" + @Count(@Filter(data.events, "code", ">=", 500)), "large-heavy"),
+  Tag("last hour shown", null, "sm", "neutral")
+])
+
+kpiSuccess = Card([
+  TextContent("Success rate", "small"),
+  TextContent("96.8%", "large-heavy"),
+  Tag("SLO 99% — at risk", null, "sm", "warning")
+])
+
+kpiAvg = Card([
+  TextContent("Avg latency", "small"),
+  TextContent("47 ms", "large-heavy"),
+  Tag("p99 218 ms", null, "sm", "info")
+])
+
+chartsRow = Stack([trafficCard, statusCard], "row", "m", "stretch", "start", true)
+
+trafficCard = Card([
+  CardHeader("Edge traffic", "Requests vs errors over selected range"),
+  LineChart(
+    data.trafficDays,
+    [
+      Series("Requests", data.trafficRequests),
+      Series("Errors × 100", data.trafficErrors)
+    ]
+  )
+])
+
+statusCard = Card([
+  CardHeader("Status code mix", "Last 24 hours"),
+  PieChart(data.statusCodes, data.statusCounts, "donut")
+])
+
+eventsSection = Stack([routesCard, recentCard], "row", "m", "stretch", "start", true)
+
+routesCard = Card([
+  CardHeader("Top routes by volume", "Requests across all regions"),
+  HorizontalBarChart(
+    data.topRoutes,
+    [Series("Requests", data.topCounts)]
+  )
+])
+
+recentCard = Card([
+  CardHeader("Recent edge events", "Latest 10 — sorted newest first"),
+  Table([
+    Col("Time",   @Each(data.events, "e", TextContent(e.time, "small"))),
+    Col("Method", @Each(data.events, "e", Tag(e.method, null, "sm", "neutral"))),
+    Col("Path",   @Each(data.events, "e", TextContent(e.path, "small"))),
+    Col("Status", @Each(data.events, "e", Tag("" + e.code, null, "sm", e.code >= 500 ? "danger" : (e.code >= 400 ? "warning" : (e.code >= 300 ? "info" : "success"))))),
+    Col("Region", @Each(data.events, "e", TextContent(e.region, "small"))),
+    Col("ms",     @Each(data.events, "e", TextContent("" + e.ms, "small")))
+  ])
+])

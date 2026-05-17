@@ -2,7 +2,7 @@
   "name": "generative-ui",
   "displayName": "Genui — Generative UI Preview",
   "description": "Live preview for OpenUI Lang (.openui) files. Your AI writes the spec — Genui renders it.",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "publisher": "ginaphi",
   "license": "MIT",
   "engines": {
@@ -135,6 +135,12 @@
         ],
         "configuration": "./language-configuration.json"
       }
+    ],
+    "snippets": [
+      {
+        "language": "openui",
+        "path": "./snippets/openui.json"
+      }
     ]
   },
   "activationEvents": [],
@@ -158,6 +164,7 @@
     "publish:openvsx": "ovsx publish --no-dependencies"
   },
   "dependencies": {
+    "@openuidev/lang-core": "0.2.4",
     "@openuidev/react-headless": "0.8.1",
     "@openuidev/react-lang": "0.2.4",
     "@openuidev/react-ui": "0.11.6",

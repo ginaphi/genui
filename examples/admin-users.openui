@@ -1,0 +1,153 @@
+# admin-users.openui — admin Users management screen.
+#
+# Inspired by edge-repo (a Cloudflare serverless boilerplate). This is a
+# stand-alone slice of the admin app — the full app would have routing,
+# auth, and a sidebar, all out of scope for OpenUI Lang.
+#
+# Showcases the data primitives that make OpenUI Lang differentiated:
+#   - Mock dataset rendered with @Each / @Filter / @Sort / @Count
+#   - Search bound to $q (Input value binding)
+#   - Role + Status Select filters with conditional bypass when "all"
+#   - Per-row Action buttons that set $editId for the edit modal
+#   - Invite modal with Form + validation rules (required, email format)
+#   - @Mutation in Action — will fire once a toolProvider is wired
+#   - Empty-state Callout when filters return nothing
+#   - KPI cards from @Count(@Filter(...))
+#
+# In production:
+#   data = Query("listUsers", {orgId})
+# For this prototype data is inline so the preview renders without a backend:
+
+data = {
+  rows: [
+    {id: "u_01", name: "Maya Tanaka",   email: "maya@example.com",   role: "Admin",  status: "active",    mfa: true,  lastSeen: "2 min ago"},
+    {id: "u_02", name: "Noah Williams", email: "noah@example.com",   role: "Editor", status: "active",    mfa: true,  lastSeen: "11 min ago"},
+    {id: "u_03", name: "Priya Shah",    email: "priya@example.com",  role: "Editor", status: "active",    mfa: false, lastSeen: "1h ago"},
+    {id: "u_04", name: "Lukas Becker",  email: "lukas@partner.io",   role: "Viewer", status: "invited",   mfa: false, lastSeen: "—"},
+    {id: "u_05", name: "Sara Okafor",   email: "sara@example.com",   role: "Viewer", status: "active",    mfa: true,  lastSeen: "yesterday"},
+    {id: "u_06", name: "Diego Reyes",   email: "diego@example.com",  role: "Editor", status: "suspended", mfa: true,  lastSeen: "3d ago"},
+    {id: "u_07", name: "Hannah Park",   email: "hannah@example.com", role: "Admin",  status: "active",    mfa: true,  lastSeen: "4h ago"},
+    {id: "u_08", name: "Owen Lee",      email: "owen@example.com",   role: "Editor", status: "active",    mfa: false, lastSeen: "30 min ago"},
+    {id: "u_09", name: "Ines Moreau",   email: "ines@partner.io",    role: "Viewer", status: "invited",   mfa: false, lastSeen: "—"},
+    {id: "u_10", name: "Theo Anand",    email: "theo@example.com",   role: "Editor", status: "active",    mfa: true,  lastSeen: "8h ago"},
+    {id: "u_11", name: "Yara Hoffman",  email: "yara@example.com",   role: "Admin",  status: "active",    mfa: true,  lastSeen: "1d ago"},
+    {id: "u_12", name: "Kai Vance",     email: "kai@example.com",    role: "Viewer", status: "suspended", mfa: false, lastSeen: "12d ago"}
+  ]
+}
+
+$q = ""
+$roleFilter = "all"
+$statusFilter = "all"
+$sort = "name"
+$showInvite = false
+
+# Filter chain — ternary skips a filter when its selector is "all" / empty.
+# Same pattern works for Query results: `data = Query("listUsers")` then filter.
+byRole   = $roleFilter   == "all" ? data.rows : @Filter(data.rows, "role",   "==", $roleFilter)
+byStatus = $statusFilter == "all" ? byRole    : @Filter(byRole,   "status", "==", $statusFilter)
+filtered = $q == "" ? byStatus : @Filter(byStatus, "name", "contains", $q)
+sorted   = @Sort(filtered, $sort, "asc")
+
+root = Stack([heading, kpis, filterBar, body, inviteModal], "column", "l", "stretch", "start")
+
+heading = CardHeader("Users", "Manage members, roles, and invitations")
+
+kpis = Stack([kpiTotal, kpiActive, kpiInvited, kpiSuspended, kpiInvite], "row", "m", "stretch", "start", true)
+
+kpiTotal = Card([
+  TextContent("Total members", "small"),
+  TextContent("" + @Count(data.rows), "large-heavy")
+])
+
+kpiActive = Card([
+  TextContent("Active", "small"),
+  TextContent("" + @Count(@Filter(data.rows, "status", "==", "active")), "large-heavy"),
+  Tag("" + @Count(@Filter(data.rows, "mfa", "==", true)) + " with MFA", null, "sm", "success")
+])
+
+kpiInvited = Card([
+  TextContent("Pending invites", "small"),
+  TextContent("" + @Count(@Filter(data.rows, "status", "==", "invited")), "large-heavy"),
+  Tag("awaiting", null, "sm", "info")
+])
+
+kpiSuspended = Card([
+  TextContent("Suspended", "small"),
+  TextContent("" + @Count(@Filter(data.rows, "status", "==", "suspended")), "large-heavy"),
+  Tag("requires review", null, "sm", "neutral")
+])
+
+kpiInvite = Card([
+  TextContent("Quick action", "small"),
+  Button("+ Invite user", Action([@Set($showInvite, true)]), "primary")
+])
+
+filterBar = Card([
+  Stack([searchCtrl, roleCtrl, statusCtrl, sortCtrl, resultLabel], "row", "m", "center", "start", true)
+])
+
+searchCtrl = FormControl("Search", Input("q", "Name or email…", "text", null, $q))
+
+roleCtrl = FormControl("Role", Select("roleFilter", [
+  SelectItem("all", "All roles"),
+  SelectItem("Admin", "Admin"),
+  SelectItem("Editor", "Editor"),
+  SelectItem("Viewer", "Viewer")
+], null, null, $roleFilter))
+
+statusCtrl = FormControl("Status", Select("statusFilter", [
+  SelectItem("all", "Any status"),
+  SelectItem("active", "Active"),
+  SelectItem("invited", "Invited"),
+  SelectItem("suspended", "Suspended")
+], null, null, $statusFilter))
+
+sortCtrl = FormControl("Sort by", Select("sort", [
+  SelectItem("name", "Name"),
+  SelectItem("role", "Role"),
+  SelectItem("status", "Status"),
+  SelectItem("lastSeen", "Last seen")
+], null, null, $sort))
+
+resultLabel = TextContent("" + @Count(filtered) + " of " + @Count(data.rows) + " shown", "small")
+
+body = @Count(filtered) > 0 ? table : emptyState
+
+table = Card([
+  Table([
+    Col("Name",      @Each(sorted, "u", TextContent(u.name, "default"))),
+    Col("Email",     @Each(sorted, "u", TextContent(u.email, "small"))),
+    Col("Role",      @Each(sorted, "u", Tag(u.role, null, "sm", u.role == "Admin" ? "info" : "neutral"))),
+    Col("Status",    @Each(sorted, "u", Tag(u.status, null, "sm", u.status == "active" ? "success" : (u.status == "suspended" ? "danger" : "neutral")))),
+    Col("MFA",       @Each(sorted, "u", Tag(u.mfa ? "✓ on" : "off", null, "sm", u.mfa ? "success" : "neutral"))),
+    Col("Last seen", @Each(sorted, "u", TextContent(u.lastSeen, "small")))
+  ])
+])
+
+emptyState = Callout("info", "No users match your filters", "Try clearing the search or switching back to All roles / Any status.")
+
+# Invite modal — opens when $showInvite is true.
+inviteModal = Modal("Invite a teammate", $showInvite, [inviteForm])
+
+inviteForm = Form("invite", inviteActions, [
+  inviteNameCtrl,
+  inviteEmailCtrl,
+  inviteRoleCtrl,
+  inviteWelcomeCtrl
+])
+
+inviteNameCtrl = FormControl("Full name", Input("name", "Maya Tanaka", "text", { required: true, minLength: 2 }))
+inviteEmailCtrl = FormControl("Email", Input("email", "maya@example.com", "email", { required: true, email: true }))
+
+inviteRoleCtrl = FormControl("Role", Select("role", [
+  SelectItem("Viewer", "Viewer — can view"),
+  SelectItem("Editor", "Editor — can edit"),
+  SelectItem("Admin", "Admin — full access")
+], null, null, "Viewer"))
+
+inviteWelcomeCtrl = FormControl("", CheckBoxItem("Send welcome email", "Notify them with a sign-in link", "welcome", true))
+
+inviteActions = Buttons([
+  Button("Cancel", Action([@Set($showInvite, false)]), "secondary"),
+  Button("Send invite", Action([@Mutation("inviteUser", {name: "", email: "", role: "Viewer"}), @Set($showInvite, false)]), "primary")
+], "row")
